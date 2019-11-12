@@ -1,0 +1,63 @@
+{
+    "variables": ["pre", "tmax", "tmin"],
+    "seasons": [2, 5, 8, 11],
+    "agg": {"pre": "sum", "tmax": "mean", "tmin": "mean", "rs": "mean", "rh": "mean", "u2": "mean"},
+    "qtree": {"qidsfile": "/mnt/gpfs/backup/agri/data/geospatial/global/URGs/URG0.25/URG_0.25_20190708.csv",
+              "level": 11, "offset": 128, "warn": 0},
+    "analysis": 
+        {
+        "weather_files": {"pre": "/mnt/gpfs/backup/agri/models/INAG/weather/historic/standard/20190714_current/byvariable/pre_month.parquet",
+                          "tmax": "/mnt/gpfs/backup/agri/models/INAG/weather/historic/standard/20190714_current/byvariable/tmax_month.parquet",
+                          "tmin": "/mnt/gpfs/backup/agri/models/INAG/weather/historic/standard/20190714_current/byvariable/tmin_month.parquet",
+                          "rs": "",
+                          "rh": "",
+                          "u2": ""},
+        "trend_files": {"pre": "/mnt/gpfs/backup/agri/models/INAG/weather/historic/standard/20190714_current/trend/notrend.parquet",
+                        "tmax": "/mnt/gpfs/backup/agri/models/INAG/weather/historic/standard/20190714_current/trend/notrend.parquet",
+                        "tmin": "/mnt/gpfs/backup/agri/models/INAG/weather/historic/standard/20190714_current/trend/notrend.parquet",
+                        "rs": "",
+                        "rh": "",
+                        "u2": ""},
+        "start": [1970, 1],
+        "end": [2009, 12],
+        "pivot_year": 2009, 
+        "trans": {"pre": 1, "tmax": 1, "tmin": 1, "rs": 1, "rh": 1, "u2": 1},
+        "shift": {"pre": 10, "tmax": 10, "tmin": 10, "rs": 10, "rh": 10, "u2": 10}, 
+        "ks_pval_min": 0,
+        "clim_hist": "/mnt/gpfs/backup/agri/data/climateindices/NOAA/20180410/indices_.csv",
+        "cixs": ["mei"]
+         },
+    "synthesis":
+        {
+        "N_years": 10000,
+        "seed": 1,
+        "z_files": {}, 
+        "clim_stoc": "/mnt/gpfs/backup/agri/models/BRAG/weather/stochastic/cindices/20180712_BRFL_MEI/cdata.csv",
+        "elev_file": "/mnt/gpfs/backup/agri/models/BRAG/geospatial/elevation/gridelevation_plus2115569.csv",
+        "bounds": {"pre": [0, 9999], "tmax": [-273, 100], "tmin": [-273, 100], "rs": [0, 9999], "rh": [0, 100], "u2": [0, 150]},
+        "analogue_vars_wt": ["pre", "tmax", "tmin"],
+        "daily_method": "analogue",
+        "histdailypath": "/mnt/gpfs/backup/agri/models/INAG/weather/historic/standard/20190714_current/byqid/"
+        },
+    "analytics":
+        {
+        "qids_ref": [
+                       757859, 757942, 757829, 757915, 749457, 761842, 762728, 762479,
+                       755879, 761274, 761958, 761689, 766815, 754540, 754611, 754475,
+                       754375, 758068, 758387, 755297, 757818, 755778, 755712, 755586,
+                       754263, 756185, 760855, 762640, 762651, 759858, 762137, 753902,
+                       756828, 756993, 761261
+                       ],
+        "country": "IN",
+        "countryshp": "/mnt/gpfs/backup/agri/data/geospatial/global/naturalearth/10m_cultural/ne_10m_admin_0_countries.shp",
+        "admin1shp": "/mnt/gpfs/backup/agri/data/geospatial/global/naturalearth/10m_cultural/ne_10m_admin_1_states_provinces.shp",
+        "qidshp": "/mnt/gpfs/backup/agri/data/geospatial/global/URGs/URG0.25/URG_0.25_20190708.shp",
+        "lonbounds": [66.5, 100],
+        "latbounds": [6.0, 36.0]
+        },
+    "notes": 
+        [
+        "Test settings file for INAG, July 2019. Incorporates minor changes to wgen."
+        ]
+}
+

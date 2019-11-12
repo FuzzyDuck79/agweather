@@ -1,0 +1,69 @@
+{
+    "variables": ["pre", "tmax", "tmin", "rs", "rh", "u2"],
+    "seasons": [3, 7, 11],
+    "agg": {"pre": "sum", "tmax": "mean", "tmin": "mean", "rs": "mean", "rh": "mean", "u2": "mean"},
+    "qtree": {"qidsfile": "/mnt/gpfs/backup/agri/data/geospatial/global/URGs/URG0.25/URG_0.25_20190101.csv",
+              "level": 11, "offset": 128, "warn": 0},
+    "analysis": 
+        {
+        "weather_files": {"pre": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/byvariable/pre_month.parquet",
+                          "tmax": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/byvariable/tmax_month.parquet",
+                          "tmin": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/byvariable/tmin_month.parquet",
+                          "rs": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/byvariable/rs_month.parquet",
+                          "rh": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/byvariable/rh_month.parquet",
+                          "u2": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/byvariable/u2_month.parquet"},
+        "trend_files": {"pre": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/trend/byvariable/notrend.parquet",
+                        "tmax": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/trend/byvariable/tmax_trend_pval_1.00.parquet",
+                        "tmin": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/trend/byvariable/tmin_trend_pval_1.00.parquet",
+                        "rs": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/trend/byvariable/notrend.parquet",
+                        "rh": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/trend/byvariable/notrend.parquet",
+                        "u2": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/trend/byvariable/notrend.parquet"},
+        "start": [1980, 1],
+        "end": [2015, 12],
+        "pivot_year": 2018, 
+        "trans": {"pre": 1, "tmax": 1, "tmin": 1, "rs": 1, "rh": 1, "u2": 1},
+        "shift": {"pre": 10, "tmax": 10, "tmin": 10, "rs": 10, "rh": 10, "u2": 10}, 
+        "ks_pval_min": 0,
+        "clim_hist": "/mnt/gpfs/backup/agri/data/climateindices/NOAA/20180410/indices_.csv",
+        "cixs": ["mei"]
+         },
+    "synthesis":
+        {
+        "N_years": 51000,
+        "seed": 1,
+        "z_files": {"pre": "/mnt/gpfs/backup/agri/models/BRAG/weather/stochastic/random/20180808_BRFL_StandardNormal/BRFL_PCs_51000years_3seasons_pre.h5"}, 
+        "clim_stoc": "/mnt/gpfs/backup/agri/models/BRAG/weather/stochastic/cindices/20180712_BRFL_MEI/cdata.csv",
+        "elev_file": "/mnt/gpfs/backup/agri/models/BRAG/geospatial/elevation/gridelevation_plus2115569.csv",
+        "bounds": {"pre": [0, 9999], "tmax": [-9999, 9999], "tmin": [-9999, 9999], "rs": [0, 9999], "rh": [0, 100], "u2": [0, 9999]},
+        "analogue_vars_wt": ["pre", "tmax", "tmin"],
+        "daily_method": "analogue",
+        "histdailypath": "/mnt/gpfs/backup/agri/models/BRAG/weather/historic/standard/20190401_current/byqid/"
+        },
+    "analytics":
+        {
+        "qids_ref": [
+                        2121748, 2122695, 2116886, 2166130, 2163460, 2115105, 2118160, 
+                        2120074, 2120897, 2116266, 2122310, 2127303, 2121306, 2125357, 
+                        2124888, 2124977, 2114148, 2115510, 2116920, 2116375, 2127096, 
+                        2114293, 2127748, 2114107, 2117085, 2075182, 2076569
+                       ],
+        "country": "BR",
+        "countryshp": "/mnt/gpfs/backup/agri/data/geospatial/global/naturalearth/10m_cultural/ne_10m_admin_0_countries.shp",
+        "admin1shp": "/mnt/gpfs/backup/agri/data/geospatial/global/naturalearth/10m_cultural/ne_10m_admin_1_states_provinces.shp",
+        "qidshp": "/mnt/gpfs/backup/agri/data/geospatial/global/URGs/URG0.25/URG_0.25_20190101.shp",
+        "lonbounds": [-80, -30],
+        "latbounds": [-35, 10]
+        },
+    "notes": 
+        [
+        "UTexas/CHIRPS+Berkeley/AgMERRAweather, full detrending, BRFL random PCs for precip.",
+        "Based on UTexas historic pre, rh, rs and u2 data, with tmax and tmin from",
+        "Berkeley Earth. Detrend tmax and tmin for all qids, regardless of statistical",
+        "significance. Box-Cox all variables.",
+        "Generating 51,000 years of stochastic data.",
+        "Note that the reference geoids are the centroids of each of the states in BR,",
+        "and are used for checking spatial correlations. A csv with names is here:",
+        "/mnt/gpfs/backup/agri/models/BRAG/geospatial/other/"
+        ]
+}
+

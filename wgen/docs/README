@@ -1,0 +1,48 @@
+Notes on wgen2
+Mutahar Chalmers, December 2018
+-------------------------------------------------------------------------------
+
+wgen2 is a fundamental rebuild of my first stochastic weather generator. The 
+idea is to make all the significant changes that have been identified at 
+various times to make this code optimal, scalable to the whole world, and as 
+correct as possible. The main changes implemented include:
+
+1 Read and write Parquet format files as standard for all weather data.     [X]
+
+2 Separate weather input files by variable (instead of a single hist.h5).   [X] 
+
+3 Convert all references from 'geoid' to 'qid', reflecting my preferred     [X]
+  geocoding convention for gridded data.
+
+4 Apply root-cosine weighting to cells at latitudes remote from the         [X]
+  equator to reflect their reduced area, and therefore their reduced
+  contribution to the covariance matrix. See link below. 
+    https://www.ncl.ucar.edu/Document/Functions/Built-in/eofcov.shtml
+
+5 Exclude cells which have extremely low normality in a given season        [ ]
+  (usually because they have lots of zero-precipitation occurrences)
+  from the PCA calculation since they detract from the overall quality
+  of the EOFs and PCs.
+
+6 When generating stochastic weather, write only seasonal data together
+  with analogue mapping; this not only saves disk space but also allows us
+  to use different season-to-day disaggregation methods.                    [ ]
+
+7 Add hierarchical/nested PCA: do PCA at a 'global' level and then at a 
+  regional level, and link the PCs somehow {talk to Anongnart}.             [ ]
+
+8 Generally simplify the code and make it more efficient.                   [ ]
+
+
+NB: Changes which would fundamentally change the structure of the
+    methodology include:
+
+    a. Go back to treating seasons as 'groups of similar months' instead of
+       'aggregated single seasonal values'
+
+    b. Steve Jewson's approach - do (multiple) regression on a cell-by-cell
+       basis against various climate indices, smooth the regression
+       coefficients and then do PCA on the residuals. Not sure how this would
+       work but it definitely has promise. This might form the basis for
+       a future major upgrade.
+
