@@ -147,7 +147,7 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
         out['spei3'] = spei3
         out['spei6'] = spei6
 
-    return out
+    return out.rename_axis('v', axis=1).stack()
 
 
 def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
@@ -159,7 +159,7 @@ def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
     ym = ['year','month']
 
     # Check that indices of tmax and tmin are identical
-    if tmax.index != tmin.index:
+    if (tmax.index != tmin.index).any():
         print('Indices of tmax and tmin must be the same!')
         return None
 
@@ -201,6 +201,42 @@ def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
     tmax95_sum = tmax.where(tmax95_bool).groupby(gbix).sum().rename_axis(ym)
     tmax95_spell = tmax95_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
 
+    # Diurnal heat (tmax); explicit HDD thresholds
+    hdd_tmax = {}
+    for thresh in tmax_gt:
+        tmax_gt_bool = pd.concat([(tmax_ym>thresh) for _, tmax_ym in tmax.groupby(gbix)])
+        tmax_gt_count = tmax_gt_bool.groupby(gbix).sum().rename_axis(ym)
+        hdd_tmax[f'tmax_hdd_count_{thresh}'] = tmax_gt_count
+        tmax_gt_sum = tmax.where(tmax_gt_bool).groupby(gbix).sum().rename_axis(ym)
+        hdd_tmax[f'tmax_hdd_sum_{thresh}'] = tmax_gt_sum
+        tmax_gt_spell = tmax_gt_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+        hdd_tmax[f'tmax_hdd_spell_{thresh}'] = tmax_gt_spell
+    hdd_tmax = pd.DataFrame(hdd_tmax)
+
+    # Nocturnal heat (tmin); explicit HDD thresholds
+    hdd_tmin = {}
+    for thresh in tmin_gt:
+        tmin_gt_bool = pd.concat([(tmin_ym>thresh) for _, tmin_ym in tmin.groupby(gbix)])
+        tmin_gt_count = tmin_gt_bool.groupby(gbix).sum().rename_axis(ym)
+        hdd_tmin[f'tmin_hdd_count_{thresh}'] = tmin_gt_count
+        tmin_gt_sum = tmin.where(tmin_gt_bool).groupby(gbix).sum().rename_axis(ym)
+        hdd_tmin[f'tmin_hdd_sum_{thresh}'] = tmin_gt_sum
+        tmin_gt_spell = tmin_gt_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+        hdd_tmin[f'tmin_hdd_spell_{thresh}'] = tmin_gt_spell
+    hdd_tmin = pd.DataFrame(hdd_tmin)
+
+    # Nocturnal cold (tmin); explicit CDD thresholds
+    cdd_tmin = {}
+    for thresh in tmin_lt:
+        tmin_lt_bool = pd.concat([(tmin_ym<thresh) for _, tmin_ym in tmin.groupby(gbix)])
+        tmin_lt_count = tmin_lt_bool.groupby(gbix).sum().rename_axis(ym)
+        cdd_tmin[f'tmin_cdd_count_{thresh}'] = tmin_lt_count
+        tmin_lt_sum = tmin.where(tmin_lt_bool).groupby(gbix).sum().rename_axis(ym)
+        cdd_tmin[f'tmin_cdd_sum_{thresh}'] = tmin_lt_sum
+        tmin_lt_spell = tmin_lt_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+        cdd_tmin[f'tmin_cdd_spell_{thresh}'] = tmin_lt_spell
+    cdd_tmin = pd.DataFrame(cdd_tmin)
+
     # Nocturnal heat and cold (tmin)
     tmin05_count = tmin05_bool.groupby(gbix).sum().rename_axis(ym)
     tmin05_sum = tmin.where(tmin05_bool).groupby(gbix).sum().rename_axis(ym)
@@ -237,9 +273,10 @@ def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
                         'tmax24': tmax24,
                         'tmax48': tmax48,
                         'tmax72': tmax72,
-                        'tmin24': tmin4,
-                        'tmaxn48': tmin48,
+                        'tmin24': tmin24,
+                        'tmin48': tmin48,
                         'tmin72': tmin72
                         })
-    return out
+    out = pd.concat([out, hdd_tmax, hdd_tmin, cdd_tmin], axis=1)
+    return out.rename_axis('v', axis=1).stack()
 
