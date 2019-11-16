@@ -95,7 +95,7 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
     # Calculate SPEI if eto available
     if eto is not None:
         eto_month = eto.groupby(gbix).sum().rename_axis(ym)
-        cwb = pre_month - eto_month
+        cwb_month = pre_month - eto_month
 
         spei1 = pd.Series(spei(cwb_month, N=1), index=cwb_month.index)
         spei3 = pd.Series(spei(cwb_month, N=3), index=cwb_month.index)
