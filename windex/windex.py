@@ -99,7 +99,7 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
 
         spei1 = pd.Series(spei(cwb_month, N=1), index=cwb_month.index)
         spei3 = pd.Series(spei(cwb_month, N=3), index=cwb_month.index)
-        spei6 = pd.Series(spiei(cwb_month, N=6), index=cwb_month.index)
+        spei6 = pd.Series(spei(cwb_month, N=6), index=cwb_month.index)
 
     # 5th and 95th daily percentiles by month
     r05 = pre.groupby(pre.index.month).quantile(0.05).rename_axis('month')
