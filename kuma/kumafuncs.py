@@ -5,7 +5,7 @@
 kumafuncs
 
 Functions for working with the Kumaraswamy distribution.
-Mutahar Chalmers, RMS, 2019
+Mutahar Chalmers, 2019
 
 2019-07-10 First version
 """

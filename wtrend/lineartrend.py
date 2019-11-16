@@ -17,7 +17,7 @@ def theilsen(x, alpha=0.95):
 
     Parameters
     ----------
-        x : 1D numpy array or pandas Series.
+        x : 1D numpy array or pandas Series
         alpha : float, optional
             Confidence level to use to estimate bounds. Default is 0.95.
 
@@ -39,7 +39,7 @@ def linreg(x):
 
     Parameters
     ----------
-        x : 1D numpy array or pandas Series.
+        x : 1D numpy array or pandas Series
 
     Returns
     -------

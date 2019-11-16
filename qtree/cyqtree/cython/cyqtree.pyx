@@ -4,7 +4,7 @@
 cyqtree
 
 Cython-based Quadtree conversion tools
-Mutahar Chalmers, RMS, 2019
+Mutahar Chalmers, 2019
 
 2019-10-12 Added improved functions cyll2qid and cyqid2ll.
 """

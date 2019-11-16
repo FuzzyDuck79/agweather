@@ -20,7 +20,8 @@ def spi(pre, N=3,  fit='mle'):
 
     Parameters
     ----------
-        pre : pandas Series indexed by (year, month) MultiIndex.
+        pre : pandas Series
+            Assumed indexed by (year, month) MultiIndex.
         N : int
             Duration in months.
         fit : str
@@ -57,6 +58,23 @@ def spei(cwb, N=3, fit='pwm_ub'):
     """
     Calculate SPEI from monthly climate water balance, pre - eto.
     Reference: http://spei.csic.es/home.html
+
+    Parameters
+    ----------
+        cwb : pandas Series
+            Climatic water balance, i.e. pre - eto.
+            Assumed indexed by (year, month) MultiIndex.
+        N : int
+            Duration in months.
+        fit : str
+            Method to use to fit cwb distribution.
+            Options include ['pwm_ub', 'pwm_pp', 'mle'].
+            Default is 'pwm_ub' (unbiased estimator of probability-weighted
+            moments).
+
+    Returns
+    -------
+        spei : pandas Series
     """
 
     # Calculate rolling sums

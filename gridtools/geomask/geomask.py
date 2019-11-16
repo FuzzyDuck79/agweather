@@ -4,7 +4,7 @@
 geomask
 
 Generate raster masks for each country and region at arbitrary grid resolution.
-Mutahar Chalmers, RMS, 2019
+Mutahar Chalmers, 2019
 """
 
 import numpy as np

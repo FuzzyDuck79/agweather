@@ -5,7 +5,7 @@
 gbmfuncs
 
 Functions for working with Geometric Brownian Motion (GBM)
-Mutahar Chalmers, RMS, 2019
+Mutahar Chalmers, 2019
 
 2019-07-10 First version
 """

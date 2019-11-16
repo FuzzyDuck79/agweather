@@ -20,12 +20,14 @@ def decompose(x, freq='d', method='additive'):
             If Series is at daily resolution, it is assumed to have a
             pandas DatetimeIndex. If Series is at monthly resolution,
             it is assumed to have a (year, month) MultiIndex.
-        freq : string, optional. Default value is 'd'.
+        freq : string, optional
             Must be one of ['d','day','daily','m','month','monthly'].
             For daily data, a periodicity of 365 days is inferred.
             For monthly data, a periodicity of 12 months is inferred.
-        method : string, optional. Default value is 'additive'.
+            Default value is 'd'.
+        method : string, optional
             Must be one of ['additive','multiplicative'].
+            Default value is 'additive'.
 
     Returns
     -------

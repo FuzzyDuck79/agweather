@@ -18,6 +18,16 @@ def runlen(x):
     """
     Calculate spell lengths for some true or false criterion.
     Spells are encoded as a boolean Series.
+
+    Parameters
+    ----------
+        x : pandas Series
+            Assumed to be of dtype Boolean.
+
+    Returns
+    -------
+        runlen : pandas Series
+            Lengths of spells of Trues, defined at start of spell.
     """
 
     fst, = np.where(x.astype(int).diff().fillna(0)==1)
@@ -42,30 +52,23 @@ def runlen(x):
     return pd.Series(lst-fst, index=x.index[fst])
 
 
-def extrema(x, wlen=1):
-    """
-    Identify (local) maxima and minima of a standardised Series x.
-    """
-
-    # First difference
-    dx = x.diff()
-
-    # First difference of sign of first difference, shifted
-    extrema = (dx/dx.abs()).diff().shift(-1)
-
-    # Assume that maxima are positive and minima are negative
-    maxima = x[(extrema==-2)&(x>0)]
-    minima = x[(extrema==2)&(x<0)]
-
-    # Local maxima and minima within a window of width wlen
-    lmaxima = x[x.rolling(wlen, center=True).max()==maxima[x.index]]
-    lminima = x[x.rolling(wlen, center=True).min()==minima[x.index]]
-    return lmaxima, lminima
-
-
 def index_pre(pre, eto=None, wetdry_thresh=1):
     """
     Calculate weather indices derived from precipitation.
+
+    Parameters
+    ----------
+        pre : pandas Series
+            Precipitation in mm.
+        eto : pandas Series, optional
+            Reference evapotranspiration in mm.
+        wetdry_thresh : float, optional
+            Threshold between dry and wet day in mm. Default is 1 mm.
+
+    Returns
+    -------
+        out : pandas Series
+            Range of different precipitation indices.
     """
 
     # Concise variable for repeated year-month indexing
@@ -153,6 +156,26 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
 def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
     """
     Calculate weather indices derived from tmax and tmin.
+
+    Parameters
+    ----------
+        tmax : pandas Series
+            Maximum daily temperature in degrees C.
+        tmin : pandas Series
+            Minimum daily temperature in degrees C.
+        tmax_gt : list of floats
+            Thresholds for calculating day heat stress degree days,
+            in degrees C.
+        tmin_gt : list of floats
+            Thresholds for calculating night heat stress degree days,
+            in degrees C.
+        tmin_lt : list of floats
+            Thresholds for calculating cold degree days, in degrees C.
+
+    Returns
+    -------
+        out : pandas Series
+            Range of different temperature indices.
     """
 
     # Concise variable for repeated year-month indexing

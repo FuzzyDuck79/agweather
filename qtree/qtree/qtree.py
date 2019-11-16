@@ -4,7 +4,7 @@
 qtree
 
 Quadtree conversion tools
-Mutahar Chalmers, RMS, 2018
+Mutahar Chalmers, 2018
 
 2019-10-12 Added improved functions ll2qid and qid2ll.
 2019-07-12 Renamed variables. Option to print details.

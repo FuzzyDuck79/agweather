@@ -16,7 +16,7 @@ def mktest(x):
 
     Parameters
     ----------
-        x : 1D numpy array or pandas Series.
+        x : 1D numpy array or pandas Series
 
     Returns
     -------

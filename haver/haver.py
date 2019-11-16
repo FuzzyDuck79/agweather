@@ -15,14 +15,23 @@ import numpy as np
 def dmat_haver_1d(lon, lat, radius=6371):
     """
     Haversine 'self' distance matrix from lon, lat arrays.
-    Assumes 1D arrays of lon and lat in decimal degrees.
-
-    lon and lat must have the same length n.
-    Returns an (n, n) distance matrix in kilometers.
-
     Sources:
         http://en.wikipedia.org/wiki/Haversine_formula
         http://stackoverflow.com/questions/34502254
+
+    Parameters
+    ----------
+        lon : numpy array
+            Longitude in decimal degrees.
+        lat : numpy array
+            Latitude in decimal degrees.
+        radius : float
+            Radius of the Earth in km.
+
+    Returns
+    -------
+        dmat : numpy array
+           Distance matrix in km.
     """
 
     lon, lat = np.array(lon), np.array(lat)
@@ -40,12 +49,23 @@ def dmat_haver_2d(ll_A, ll_B=None, radius=6371):
     Haversine distance matrix in km from two different (n, 2) shaped
     lon, lat arrays. Assumes both arrays in decimal degrees.
 
-    ll_A has shape (nA, 2), ll_B has shape (nB, 2).
-    Returns an (nA, nB) distance matrix in kilometers.
-
     Sources:
         http://en.wikipedia.org/wiki/Haversine_formula
         http://stackoverflow.com/questions/34502254
+
+    Parameters
+    ----------
+        ll_A : numpy array of shape (nA, 2)
+            Longitude, latitude pairs in decimal degrees.
+        ll_B : numpy array of shape (nB, 2)
+            Longitude, latitude pairs in decimal degrees.
+        radius : float
+            Radius of the Earth in km.
+
+    Returns
+    -------
+        dmat : numpy array of shape (nA, nB)
+           Distance matrix in km.
     """
 
     if ll_B is None:

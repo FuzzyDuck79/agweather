@@ -5,7 +5,7 @@
 urggen
 
 Generate global qid-level Uniform Resolution Grids (URG).
-Mutahar Chalmers, RMS, 2019
+Mutahar Chalmers, 2019
 """
 
 import sys
@@ -22,13 +22,16 @@ def makeURG_DataArray(res):
     """
     Make a global qid-grid in xarray DataArray format.
 
-    Arguments:
-        res :: float
+    Parameters
+    ----------
+        res : float
             Grid resolution in decimal degrees.
-    Returns:
-        da :: DataArray
+
+    Returns
+    -------
+        da : DataArray
             xarray DataArray of qids with longitude and latitude dimensions.
-        df :: DataFrame
+        df : DataFrame
             pandas DataFrame with qid, longitude and latitude.
     """
 
@@ -52,11 +55,14 @@ def makeURG_GeoDataFrame(res):
     """
     Make a global qid-grid in xarray DataArray format.
 
-    Arguments:
-        res :: float
+    Parameters
+    ----------
+        res : float
             Grid resolution in decimal degrees.
-    Returns:
-        gdf :: GeoDataFrame
+
+    Returns
+    -------
+        gdf : GeoDataFrame
             geopandas GeoDataFrame with qid and geometry columns.
     """
 
