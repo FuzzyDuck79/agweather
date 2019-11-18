@@ -68,7 +68,7 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
     Returns
     -------
         out : pandas Series
-            Range of different precipitation indices.
+            Collection of different precipitation indices.
     """
 
     # Concise variable for repeated year-month indexing
@@ -101,25 +101,23 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
         spei3 = pd.Series(spei(cwb_month, N=3), index=cwb_month.index)
         spei6 = pd.Series(spei(cwb_month, N=6), index=cwb_month.index)
 
-    # 5th and 95th daily percentiles by month
-    r05 = pre.groupby(pre.index.month).quantile(0.05).rename_axis('month')
-    r95 = pre.groupby(pre.index.month).quantile(0.95).rename_axis('month')
+    # 5th and 95th monthly percentiles
+    r_p05 = pre.groupby(pre.index.month).transform(lambda x: x.quantile(0.05))
+    r_p95 = pre.groupby(pre.index.month).transform(lambda x: x.quantile(0.95))
 
-    # Boolean Series flagging whether <=r05 or >r95 criteria have been satisfied
-    r05_bool = pd.concat([(pre_ym<=r05[month])
-                          for (year, month), pre_ym in pre.groupby(gbix)])
-    r95_bool = pd.concat([(pre_ym>r95[month])
-                          for (year, month), pre_ym in pre.groupby(gbix)])
+    # Boolean Series flagging if r<=p05 or r>p95 criteria have been satisfied
+    r_lt_p05 = pre <= r_p05
+    r_gt_p95 = pre > r_p95
 
-    # Precipitation deficit
-    r05_count = r05_bool.groupby(gbix).sum().rename_axis(ym)
-    r05_sum = pre.where(r05_bool).groupby(gbix).sum().rename_axis(ym)
-    r05_spell = r05_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    # Precipitation deficit - percentile thresholds
+    r_count_lt_p05 = r_lt_p05.groupby(gbix).sum().rename_axis(ym)
+    r_spell_lt_p05 = r_lt_p05.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    #r_sum_lt_p05 doesn't make sense, so omit
 
-    # Precipitation excess
-    r95_count = r95_bool.groupby(gbix).sum().rename_axis(ym)
-    r95_sum = pre.where(r95_bool).groupby(gbix).sum().rename_axis(ym)
-    r95_spell = r95_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    # Precipitation excess - percentile thresholds
+    r_count_gt_p95 = r_gt_p95.groupby(gbix).sum().rename_axis(ym)
+    r_spell_gt_p95 = r_gt_p95.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    r_sum_gt_p95 = (pre-r_p95).clip(0, None).groupby(gbix).sum().rename_axis(ym)
 
     # 1-, 2- and 3-day maximum
     pre24 = pre.groupby(gbix).max().rename_axis(ym)
@@ -133,19 +131,19 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
                         'spi1': spi1,
                         'spi3': spi3,
                         'spi6': spi6,
-                        'r05_count': r05_count.astype(int),
-                        'r05_sum': r05_sum,
-                        'r05_spell': r05_spell.astype(int),
-                        'r95_count': r95_count.astype(int),
-                        'r95_sum': r95_sum,
-                        'r95_spell': r95_spell.astype(int),
+                        'r_count_lt_p05': r_count_lt_p05.astype(int),
+                        'r_spell_lt_p05': r_spell_lt_p05.astype(int),
+                        'r_count_gt_p95': r_count_gt_p95.astype(int),
+                        'r_spell_gt_p95': r_spell_gt_p95.astype(int),
+                        'r_sum_gt_p95': r_sum_gt_p95,
                         'pre24': pre24,
                         'pre48': pre48,
                         'pre72': pre72
                         })
 
-    # Add SPEI if applicable
+    # Add ETo and SPEI if available
     if eto is not None:
+        out['eto'] = eto_month
         out['spei1'] = spei1
         out['spei3'] = spei3
         out['spei6'] = spei6
@@ -175,7 +173,7 @@ def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
     Returns
     -------
         out : pandas Series
-            Range of different temperature indices.
+            Collection of different temperature indices.
     """
 
     # Concise variable for repeated year-month indexing
@@ -201,72 +199,71 @@ def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
     dtr_month = tmax_month - tmin_month
 
     # 5th and 95th daily percentiles by month for both tmax and tmin
-    tmax05 = tmax.groupby(tmax.index.month).quantile(0.05).rename_axis('month')
-    tmax95 = tmax.groupby(tmax.index.month).quantile(0.95).rename_axis('month')
-    tmin05 = tmin.groupby(tmin.index.month).quantile(0.05).rename_axis('month')
-    tmin95 = tmin.groupby(tmin.index.month).quantile(0.95).rename_axis('month')
+    tmax_p05 = tmax.groupby(tmax.index.month).transform(lambda x: x.quantile(0.05))
+    tmax_p95 = tmax.groupby(tmax.index.month).transform(lambda x: x.quantile(0.95))
+    tmin_p05 = tmin.groupby(tmin.index.month).transform(lambda x: x.quantile(0.05))
+    tmin_p95 = tmin.groupby(tmin.index.month).transform(lambda x: x.quantile(0.95))
 
     # Boolean Series flagging whether <=t05 or >t95 criteria have been satisfied
-    tmax05_bool = pd.concat([(tmax_ym<=tmax05[month])
-                             for (year, month), tmax_ym in tmax.groupby(gbix)])
-    tmax95_bool = pd.concat([(tmax_ym>tmax95[month])
-                             for (year, month), tmax_ym in tmax.groupby(gbix)])
-    tmin05_bool = pd.concat([(tmin_ym<=tmin05[month])
-                             for (year, month), tmin_ym in tmin.groupby(gbix)])
-    tmin95_bool = pd.concat([(tmin_ym>tmin95[month])
-                             for (year, month), tmin_ym in tmin.groupby(gbix)])
+    tmax_lt_p05 = tmax <= tmax_p05
+    tmax_gt_p95 = tmax > tmax_p95
+    tmin_lt_p05 = tmin <= tmin_p05
+    tmin_gt_p95 = tmin > tmin_p95
 
-    # Diurnal heat and cold (tmax)
-    tmax05_count = tmax05_bool.groupby(gbix).sum().rename_axis(ym)
-    tmax05_sum = tmax.where(tmax05_bool).groupby(gbix).sum().rename_axis(ym)
-    tmax05_spell = tmax05_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
-    tmax95_count = tmax95_bool.groupby(gbix).sum().rename_axis(ym)
-    tmax95_sum = tmax.where(tmax95_bool).groupby(gbix).sum().rename_axis(ym)
-    tmax95_spell = tmax95_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    # Diurnal (tmax) heat and cold - percentile thresholds
+    tmax_count_gt_p95 = tmax_gt_p95.groupby(gbix).sum().rename_axis(ym)
+    tmax_spell_gt_p95 = tmax_gt_p95.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    tmax_sum_gt_p95 = (tmax-tmax_p95).clip(0, None).groupby(gbix).sum().rename_axis(ym)
+    tmax_count_lt_p05 = tmax_lt_p05.groupby(gbix).sum().rename_axis(ym)
+    tmax_spell_lt_p05 = tmax_lt_p05.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    tmax_sum_lt_p05 = (tmax_p05-tmax).clip(0, None).groupby(gbix).sum().rename_axis(ym)
 
-    # Diurnal heat (tmax); explicit HDD thresholds
+    # Nocturnal (tmin) heat and cold - percentile thresholds
+    tmin_count_gt_p95 = tmin_gt_p95.groupby(gbix).sum().rename_axis(ym)
+    tmin_spell_gt_p95 = tmin_gt_p95.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    tmin_sum_gt_p95 = (tmin-tmin_p95).clip(0, None).groupby(gbix).sum().rename_axis(ym)
+    tmin_count_lt_p05 = tmin_lt_p05.groupby(gbix).sum().rename_axis(ym)
+    tmin_spell_lt_p05 = tmin_lt_p05.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+    tmin_sum_lt_p05 = (tmin_p05-tmin).clip(0, None).groupby(gbix).sum().rename_axis(ym)
+
+    # Diurnal (tmax) heat - explicit HDD thresholds
     hdd_tmax = {}
     for thresh in tmax_gt:
-        tmax_gt_bool = pd.concat([(tmax_ym>thresh) for _, tmax_ym in tmax.groupby(gbix)])
-        tmax_gt_count = tmax_gt_bool.groupby(gbix).sum().rename_axis(ym)
-        hdd_tmax[f'tmax_hdd_count_{thresh}'] = tmax_gt_count
-        tmax_gt_sum = tmax.where(tmax_gt_bool).groupby(gbix).sum().rename_axis(ym)
-        hdd_tmax[f'tmax_hdd_sum_{thresh}'] = tmax_gt_sum
-        tmax_gt_spell = tmax_gt_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
-        hdd_tmax[f'tmax_hdd_spell_{thresh}'] = tmax_gt_spell
+        # Identify days greater than the threshold with a boolean mask
+        tmax_gt_thresh = tmax > thresh
+        tmax_count_gt = tmax_gt_thresh.groupby(gbix).sum().rename_axis(ym)
+        hdd_tmax[f'tmax_count_gt_{thresh}'] = tmax_count_gt
+        tmax_spell_gt = tmax_gt_thresh.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+        hdd_tmax[f'tmax_spell_gt_{thresh}'] = tmax_spell_gt
+        tmax_sum_gt = (tmax-thresh).clip(0, None).groupby(gbix).sum().rename_axis(ym)
+        hdd_tmax[f'tmax_sum_gt_{thresh}'] = tmax_sum_gt
     hdd_tmax = pd.DataFrame(hdd_tmax)
 
     # Nocturnal heat (tmin); explicit HDD thresholds
     hdd_tmin = {}
     for thresh in tmin_gt:
-        tmin_gt_bool = pd.concat([(tmin_ym>thresh) for _, tmin_ym in tmin.groupby(gbix)])
-        tmin_gt_count = tmin_gt_bool.groupby(gbix).sum().rename_axis(ym)
-        hdd_tmin[f'tmin_hdd_count_{thresh}'] = tmin_gt_count
-        tmin_gt_sum = tmin.where(tmin_gt_bool).groupby(gbix).sum().rename_axis(ym)
-        hdd_tmin[f'tmin_hdd_sum_{thresh}'] = tmin_gt_sum
-        tmin_gt_spell = tmin_gt_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
-        hdd_tmin[f'tmin_hdd_spell_{thresh}'] = tmin_gt_spell
+        # Identify days greater than the threshold with a boolean mask
+        tmin_gt_thresh = tmin > thresh
+        tmin_count_gt = tmin_gt_thresh.groupby(gbix).sum().rename_axis(ym)
+        hdd_tmin[f'tmin_count_gt_{thresh}'] = tmin_count_gt
+        tmin_spell_gt = tmin_gt_thresh.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+        hdd_tmin[f'tmin_spell_gt_{thresh}'] = tmin_spell_gt
+        tmin_sum_gt = (tmin-thresh).clip(0, None).groupby(gbix).sum().rename_axis(ym)
+        hdd_tmin[f'tmin_sum_gt_{thresh}'] = tmin_sum_gt
     hdd_tmin = pd.DataFrame(hdd_tmin)
 
     # Nocturnal cold (tmin); explicit CDD thresholds
     cdd_tmin = {}
     for thresh in tmin_lt:
-        tmin_lt_bool = pd.concat([(tmin_ym<thresh) for _, tmin_ym in tmin.groupby(gbix)])
-        tmin_lt_count = tmin_lt_bool.groupby(gbix).sum().rename_axis(ym)
-        cdd_tmin[f'tmin_cdd_count_{thresh}'] = tmin_lt_count
-        tmin_lt_sum = tmin.where(tmin_lt_bool).groupby(gbix).sum().rename_axis(ym)
-        cdd_tmin[f'tmin_cdd_sum_{thresh}'] = tmin_lt_sum
-        tmin_lt_spell = tmin_lt_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
-        cdd_tmin[f'tmin_cdd_spell_{thresh}'] = tmin_lt_spell
+        # Identify days less than the threshold with a boolean mask
+        tmin_lt_thresh = tmin <= thresh
+        tmin_count_lt = tmin_lt_thresh.groupby(gbix).sum().rename_axis(ym)
+        cdd_tmin[f'tmin_count_lt_{thresh}'] = tmin_count_lt
+        tmin_spell_lt = tmin_lt_thresh.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
+        cdd_tmin[f'tmin_spell_lt_{thresh}'] = tmin_spell_lt
+        tmin_sum_lt = (thresh-tmin).clip(0, None).groupby(gbix).sum().rename_axis(ym)
+        cdd_tmin[f'tmin_sum_lt_{thresh}'] = tmin_sum_lt
     cdd_tmin = pd.DataFrame(cdd_tmin)
-
-    # Nocturnal heat and cold (tmin)
-    tmin05_count = tmin05_bool.groupby(gbix).sum().rename_axis(ym)
-    tmin05_sum = tmin.where(tmin05_bool).groupby(gbix).sum().rename_axis(ym)
-    tmin05_spell = tmin05_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
-    tmin95_count = tmin95_bool.groupby(gbix).sum().rename_axis(ym)
-    tmin95_sum = tmin.where(tmin95_bool).groupby(gbix).sum().rename_axis(ym)
-    tmin95_spell = tmin95_bool.groupby(gbix).apply(runlen).rename_axis(ym+[0]).max(level=ym)
 
     # 1-, 2- and 3-day maxima and minima
     tmax24 = tmax.groupby(gbix).max().rename_axis(ym)
@@ -278,21 +275,21 @@ def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
 
     # Combine all indices indexed by (year, month) MultiIndex
     out = pd.DataFrame({
-                        'tmax': tmax_month,
-                        'tmin': tmin_month,
-                        'dtr': dtr_month,
-                        'tmax05_count': tmax05_count.astype(int),
-                        'tmax05_sum': tmax05_sum,
-                        'tmax05_spell': tmax05_spell.astype(int),
-                        'tmax95_count': tmax95_count.astype(int),
-                        'tmax95_sum': tmax95_sum,
-                        'tmax95_spell': tmax95_spell.astype(int),
-                        'tmin05_count': tmin05_count.astype(int),
-                        'tmin05_sum': tmin05_sum,
-                        'tmin05_spell': tmin05_spell.astype(int),
-                        'tmin95_count': tmin95_count.astype(int),
-                        'tmin95_sum': tmin95_sum,
-                        'tmin95_spell': tmin95_spell.astype(int),
+                        'tmax_mean': tmax_month,
+                        'tmin_mean': tmin_month,
+                        'dtr_mean': dtr_month,
+                        'tmax_count_lt_p05': tmax_count_lt_p05.astype(int),
+                        'tmax_sum_lt_p05': tmax_sum_lt_p05,
+                        'tmax_spell_lt_p05': tmax_spell_lt_p05.astype(int),
+                        'tmax_count_gt_p95': tmax_count_gt_p95.astype(int),
+                        'tmax_sum_gt_p95': tmax_sum_gt_p95,
+                        'tmax_spell_gt_p95': tmax_spell_gt_p95.astype(int),
+                        'tmin_count_lt_p05': tmin_count_lt_p05.astype(int),
+                        'tmin_sum_lt_p05': tmin_sum_lt_p05,
+                        'tmin_spell_lt_p05': tmin_spell_lt_p05.astype(int),
+                        'tmin_count_gt_p95': tmin_count_gt_p95.astype(int),
+                        'tmin_sum_gt_p95': tmin_sum_gt_p95,
+                        'tmin_spell_gt_p95': tmin_spell_gt_p95.astype(int),
                         'tmax24': tmax24,
                         'tmax48': tmax48,
                         'tmax72': tmax72,
