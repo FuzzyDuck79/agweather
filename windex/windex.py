@@ -148,7 +148,7 @@ def index_pre(pre, eto=None, wetdry_thresh=1):
         out['spei3'] = spei3
         out['spei6'] = spei6
 
-    return out.rename_axis('v', axis=1).stack()
+    return out.rename_axis('index_name', axis=1).stack().rename('value')
 
 
 def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
@@ -298,5 +298,5 @@ def index_tmp(tmax, tmin, tmax_gt=[35,40], tmin_gt=[15,20], tmin_lt=[0]):
                         'tmin72': tmin72
                         })
     out = pd.concat([out, hdd_tmax, hdd_tmin, cdd_tmin], axis=1)
-    return out.rename_axis('v', axis=1).stack()
+    return out.rename_axis('index_name', axis=1).stack().rename('value')
 
