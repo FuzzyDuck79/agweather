@@ -18,14 +18,20 @@ sys.path.append('/mnt/gpfs/backup/agri/code/')
 import qtree
 
 
-def makeURG_DataArray(res):
+def makeURG_DataArray(res, lon_bounds=None, lat_bounds=None):
     """
-    Make a global qid-grid in xarray DataArray format.
+    Make a URG in xarray DataArray format.
 
     Parameters
     ----------
         res : float
             Grid resolution in decimal degrees.
+        lon_bounds : tuple, optional
+            2-tuple of floats containing longitude extent of URG centroids.
+            If omitted, defaults to (-180+res/2, 180+res/2).
+        lat_bounds : tuple, optional
+            2-tuple of floats containing latitude extent of URG centroids.
+            If omitted, defaults to (-90+res/2, 90+res/2).
 
     Returns
     -------
@@ -35,9 +41,19 @@ def makeURG_DataArray(res):
             pandas DataFrame with qid, longitude and latitude.
     """
 
+    if lon_bounds is None:
+        lon_args = (-180+res/2, 180+res/2, res)
+    else:
+        lon_args = lon_bounds + (res,)
+
+    if lat_bounds is None:
+        lat_args = (-90+res/2, 90+res/2, res)
+    else:
+        lat_args = lat_bounds + (res,)
+
     # Generate arrays of qid centroid coordinates
-    lons = np.arange(-180+res/2, 180+res/2, res)
-    lats = np.arange(-90+res/2, 90+res/2, res)
+    lons = np.arange(*lon_args)
+    lats = np.arange(*lat_args)
 
     # Generate actual qids and store in DataArray
     qids = np.array([qtree.cyll2qid(lon, lat, res)
@@ -51,14 +67,20 @@ def makeURG_DataArray(res):
     return da, df
 
 
-def makeURG_GeoDataFrame(res):
+def makeURG_GeoDataFrame(res, lon_bounds=None, lat_bounds=None):
     """
-    Make a global qid-grid in xarray DataArray format.
+    Make a URG in geopandas GeoDataFrame format.
 
     Parameters
     ----------
         res : float
             Grid resolution in decimal degrees.
+        lon_bounds : tuple, optional
+            2-tuple of floats containing longitude extent of URG centroids.
+            If omitted, defaults to (-180+res/2, 180+res/2).
+        lat_bounds : tuple, optional
+            2-tuple of floats containing latitude extent of URG centroids.
+            If omitted, defaults to (-90+res/2, 90+res/2).
 
     Returns
     -------
@@ -66,12 +88,23 @@ def makeURG_GeoDataFrame(res):
             geopandas GeoDataFrame with qid and geometry columns.
     """
 
+    if lon_bounds is None:
+        lon_args = (-180+res/2, 180+res/2, res)
+    else:
+        lon_args = lon_bounds + (res,)
+
+    if lat_bounds is None:
+        lat_args = (-90+res/2, 90+res/2, res)
+    else:
+        lat_args = lat_bounds + (res,)
+
     # Generate arrays of qid centroid coordinates
-    lons = np.arange(-180+res/2, 180+res/2, res)
-    lats = np.arange(-90+res/2, 90+res/2, res)
+    lons = np.arange(*lon_args)
+    lats = np.arange(*lat_args)
 
     # Generate qid Polygons and store in GeoDataFrame
     gdf_raw = [{'qid': qtree.cyll2qid(lon, lat, res),
+                'lon': lon, 'lat': lat,
                 'geometry': shp.geometry.Polygon([(lon+res/2, lat+res/2),
                                                   (lon+res/2, lat-res/2),
                                                   (lon-res/2, lat-res/2),
