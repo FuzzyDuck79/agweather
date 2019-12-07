@@ -45,16 +45,16 @@ def spi(pre, N=3,  fit='mle'):
     for month in range(1, 13):
         # Fit gamma distribution to non-zero values
         params = gamma.fit(rollingsum[month].dropna(), loc=0)
-        percentiles = gamma.cdf(rollingsum[month].dropna(), *params)
+        cumprobs = gamma.cdf(rollingsum[month].dropna(), *params)
 
-        # Scale non-zero percentile, add probability mass at zero and invert
-        spi_vals = norm.ppf(1-p_nonzero[month] + percentiles*p_nonzero[month])
+        # Scale non-zero cumprobs, add probability mass at zero and invert
+        spi_vals = norm.ppf(1-p_nonzero[month] + cumprobs*p_nonzero[month])
         spi.loc[~rollingsum[month].isnull(), month] = spi_vals
 
     return spi.stack().reindex(pre.index)
 
 
-def spei(cwb, N=3, fit='pwm_ub'):
+def spei(cwb, N=3, fit='ecdf'):
     """
     Calculate SPEI from monthly climate water balance, pre - eto.
     Reference: http://spei.csic.es/home.html
@@ -68,9 +68,8 @@ def spei(cwb, N=3, fit='pwm_ub'):
             Duration in months.
         fit : str
             Method to use to fit cwb distribution.
-            Options include ['pwm_ub', 'pwm_pp', 'mle'].
-            Default is 'pwm_ub' (unbiased estimator of probability-weighted
-            moments).
+            Options include ['pwm_ub', 'pwm_pp', 'mle', 'ecdf].
+            Default is 'ecdf'.
 
     Returns
     -------
@@ -83,17 +82,23 @@ def spei(cwb, N=3, fit='pwm_ub'):
     # Define SPEI DataFrame
     spei = pd.DataFrame().reindex_like(rollingsum)
 
-    # Fit distribution using L-moments and convert to SPEI
     for month in range(1, 13):
+        # Fit distribution using L-moments and convert to SPEI
         if fit == 'pwm_ub' or fit == 'pwm_pp':
             params = genlogistic_fit(rollingsum[month].dropna(), method=fit)
-            percentiles = genlogistic_cdf(rollingsum[month].dropna(), **params)
-    # Fit distribution by maximum likelihood and convert to SPEI
-        else:
+            cumprobs = genlogistic_cdf(rollingsum[month].dropna(), **params)
+        # Fit distribution by maximum likelihood and convert to SPEI
+        elif fit == 'mle':
             params = genlogistic.fit(rollingsum[month].dropna())
-            percentiles = genlogistic.cdf(rollingsum[month].dropna(), *params)
+            cumprobs = genlogistic.cdf(rollingsum[month].dropna(), *params)
+        # Use empirical CDF implicitly - calculate cumprobs directly
+        else:
+            rsm = rollingsum[month].dropna()
+            # Normal plotting position formula
+            a = 3/8 if rsm.size<=10 else 0.5
+            cumprobs = (rsm.argsort().argsort()+1-a)/(rsm.size+1-2*a)
 
-        spei_vals = norm.ppf(percentiles)
+        spei_vals = norm.ppf(cumprobs)
         spei.loc[~rollingsum[month].isnull(), month] = spei_vals
     return spei.stack().reindex(cwb.index)
 
